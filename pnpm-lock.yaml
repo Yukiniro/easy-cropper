@@ -8,6 +8,9 @@ dependencies:
   '@radix-ui/react-slot':
     specifier: ^1.0.2
     version: 1.0.2(@types/react@18.2.45)(react@18.2.0)
+  '@uiw/react-github-corners':
+    specifier: ^1.5.16
+    version: 1.5.16(react-dom@18.2.0)(react@18.2.0)
   class-variance-authority:
     specifier: ^0.7.0
     version: 0.7.0
@@ -454,6 +457,21 @@ packages:
       '@typescript-eslint/types': 6.15.0
       eslint-visitor-keys: 3.4.3
     dev: true
+
+  /@uiw/github-corners@1.5.16:
+    resolution: {integrity: sha512-XelD5IePslpUBvT0S9jsIGKnnxSkqs6peZH2+rh42x+N1cQ0eQMbTfeWPbJtl4TiZEawywZclXlt55+Ur4CFVA==}
+    dev: false
+
+  /@uiw/react-github-corners@1.5.16(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-t2oWv3Pboxuy03OVcn13kuQit1X+AUYqP+NhhDlCZmIUZKoRSMeB7IOQo4FBVvRbPO0teOnDDid7xaWAtVsugg==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+    dependencies:
+      '@uiw/github-corners': 1.5.16
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
 
   /@ungap/structured-clone@1.2.0:
     resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}

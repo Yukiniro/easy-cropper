@@ -3,10 +3,12 @@
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 import Placeholder from "@/components/placeholder";
+import GitHubCorners from "@uiw/react-github-corners";
 
 export default function Home() {
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <GitHubCorners href="https://github.com/Yukiniro" />
       <h1 className="text-6xl font-bold mb-8">Image Cropper</h1>
       <div className="bg-white shadow rounded-lg w-full max-w-6xl p-10">
         <div className="flex items-center justify-between mb-8">
