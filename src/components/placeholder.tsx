@@ -11,6 +11,7 @@ export default function Placeholder(props: PlaceholderProps) {
   return (
     <Image
       alt={alt}
+      loading="lazy"
       className={cn("w-full h-full object-cover", className)}
       height="256"
       src="assets/placeholder.svg"

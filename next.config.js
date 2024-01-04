@@ -1,4 +1,15 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
+const nextConfig = {
+  webpack(config) {
+    config.plugins.push(
+      require("unplugin-icons/webpack").default({
+        compiler: "jsx",
+        jsx: "react",
+      }),
+    );
 
-module.exports = nextConfig
+    return config;
+  },
+};
+
+module.exports = nextConfig;
