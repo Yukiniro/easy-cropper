@@ -3,7 +3,7 @@ import Placeholder from "@/components/placeholder";
 import { SolarDownloadOutline } from "@/components/icon/solar-download-outline";
 import { SolarUploadOutline } from "@/components/icon/solar-upload-outline";
 import GitHubCorners from "@yukiniro/react-github-corners";
-// import '@yukiniro/react-github-corners/dist/style.css';
+import '@yukiniro/react-github-corners/dist/style.css';
 
 export default function Home() {
   return (
