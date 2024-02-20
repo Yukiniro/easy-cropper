@@ -2,89 +2,156 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { imageLoadableAtom, renderRelativeRectAtom } from "@/store/atoms";
 import { useAtom } from "jotai";
 import { fitSize } from "bittydash";
+import { clamp } from "lodash-es";
+import useDomRect from "@/hooks/useDomRect";
 
 export function InteractionView() {
-  const [isDraging, setIsDraging] = useState(false);
-  const [point, setPoint] = useState({ x: 0, y: 0 });
+  const [status, setStatus] = useState<"new" | "move" | "none">("none");
+  const [recordPoint, setPoint] = useState({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [value] = useAtom(imageLoadableAtom);
   const [relativeRect, setRelativeRect] = useAtom(renderRelativeRectAtom);
+  const [recordRelativeRect, setRecordRelativeRect] = useState(relativeRect);
   const validImage = value.state === "hasData" && value.data;
 
-  useEffect(() => {
-    if (validImage) {
-      const canvas = canvasRef.current;
-      const container = containerRef.current;
-      const containerRect = container?.getBoundingClientRect();
-      const containerSize = { width: containerRect?.width || 0, height: containerRect?.height || 0 };
+  const containerRect = useDomRect(containerRef);
 
-      if (canvas && container) {
-        const { width, height } = fitSize(
-          { width: validImage.naturalWidth, height: validImage.naturalHeight },
-          containerSize,
-        );
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext("2d")?.drawImage(validImage, 0, 0, width, height);
-      }
+  useEffect(() => {
+    if (validImage && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const { width, height } = fitSize(
+        { width: validImage.naturalWidth, height: validImage.naturalHeight },
+        containerRect,
+      );
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d")?.drawImage(validImage, 0, 0, width, height);
     }
-  }, [validImage]);
+  }, [containerRect, validImage]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDraging(true);
-    setPoint({ x: e.clientX, y: e.clientY });
+    const mousePoint = { x: e.clientX, y: e.clientY };
+    setPoint(mousePoint);
+    setRecordRelativeRect(relativeRect);
   };
 
-  const handleMouseUp = (e: React.MouseEvent) => {
-    setIsDraging(false);
-    setRelativeRect({ x: 0, y: 0, width: 0, height: 0 });
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDraging && validImage) {
-      const canvas = canvasRef.current;
-      const rect = canvas!.getBoundingClientRect();
-      const x = point.x - rect!.left;
-      const y = point.y - rect!.top;
-      const width = e.clientX - point.x;
-      const height = e.clientY - point.y;
-      setRelativeRect({
-        x: x / canvas!.width,
-        y: y / canvas!.height,
-        width: width / canvas!.width,
-        height: height / canvas!.height,
-      });
+  const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    if (!canvasRef.current) {
+      return;
     }
+    handleMouseDown(e);
+    setStatus("new");
   };
 
-  const trackViewStyle = useMemo(() => {
-    const canvas = canvasRef.current;
-    if (isDraging && canvas) {
-      return {
-        left: `${relativeRect.x * canvas.width}px`,
-        top: `${relativeRect.y * canvas.height}px`,
-        width: `${relativeRect.width * canvas.width}px`,
-        height: `${relativeRect.height * canvas.height}px`,
-      };
+  const handleAuxiMouseDown = (e: React.MouseEvent) => {
+    if (!canvasRef.current) {
+      return;
     }
-    return {};
-  }, [isDraging, relativeRect]);
+    handleMouseDown(e);
+    setStatus("move");
+  };
 
-  console.log(trackViewStyle);
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (status === "none" || !canvasRef.current) {
+        return;
+      }
+
+      const mousePoint = { x: e.clientX, y: e.clientY };
+      const { width, height, left, top } = canvasRef.current.getBoundingClientRect();
+
+      const curX = recordRelativeRect.x * width;
+      const curY = recordRelativeRect.y * height;
+      const curW = recordRelativeRect.width * width;
+      const curH = recordRelativeRect.height * height;
+
+      const recordMouseX = recordPoint.x - left;
+      const recordMouseY = recordPoint.y - top;
+
+      let maxDeltaX = 0;
+      let maxDeltaY = 0;
+      let minDeltaX = 0;
+      let minDeltaY = 0;
+
+      switch (status) {
+        case "move":
+          minDeltaX = -curX;
+          maxDeltaX = width - curX - curW;
+          minDeltaY = -curY;
+          maxDeltaY = height - curY - curH;
+          break;
+        case "new":
+          minDeltaX = -recordMouseX;
+          maxDeltaX = width - recordMouseX;
+          minDeltaY = -recordMouseY;
+          maxDeltaY = height - recordMouseY;
+          break;
+      }
+
+      const deltaX = clamp(mousePoint.x - recordPoint.x, minDeltaX, maxDeltaX);
+      const deltaY = clamp(mousePoint.y - recordPoint.y, minDeltaY, maxDeltaY);
+
+      switch (status) {
+        case "move":
+          setRelativeRect({
+            x: recordRelativeRect.x + deltaX / width,
+            y: recordRelativeRect.y + deltaY / height,
+            width: recordRelativeRect.width,
+            height: recordRelativeRect.height,
+          });
+          break;
+        case "new":
+          setRelativeRect({
+            x: (Math.min(recordPoint.x, recordPoint.x + deltaX) - left) / width,
+            y: (Math.min(recordPoint.y, recordPoint.y + deltaY) - top) / height,
+            width: Math.abs(deltaX / width),
+            height: Math.abs(deltaY / height),
+          });
+          break;
+      }
+    };
+    const handleMouseUp = () => {
+      setStatus("none");
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [recordPoint, recordRelativeRect, relativeRect, setRelativeRect, status]);
+
+  const auxiStyle = useMemo(() => {
+    if (!canvasRef.current) {
+      return { auxiRect: { x: 0, y: 0, width: 0, height: 0 }, auxiDomRect: new DOMRect(0, 0, 0, 0) };
+    }
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    const x = relativeRect.x * canvasRect.width;
+    const y = relativeRect.y * canvasRect.height;
+    const width = relativeRect.width * canvasRect.width;
+    const height = relativeRect.height * canvasRect.height;
+
+    return {
+      left: `${x}px`,
+      top: `${y}px`,
+      width: `${width}px`,
+      height: `${height}px`,
+    };
+  }, [relativeRect]);
 
   if (validImage) {
     return (
-      <div
-        className="w-1/2 h-full flex items-center justify-center"
-        ref={containerRef}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-      >
+      <div className="w-1/2 h-full flex items-center justify-center" ref={containerRef}>
         <div className="relative">
-          <canvas ref={canvasRef} />
-          <div className="absolute bg-blue-300 opacity-60" style={trackViewStyle} />
+          <canvas onMouseDown={handleCanvasMouseDown} ref={canvasRef} />
+          <div
+            className="absolute border-2 border-blue-500 bg-blue-200 bg-opacity-60"
+            style={auxiStyle}
+            onMouseDown={handleAuxiMouseDown}
+          ></div>
         </div>
       </div>
     );

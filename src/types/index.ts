@@ -5,4 +5,9 @@ export interface Rect {
   height: number;
 }
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
 export interface RelativeRect extends Rect {}
