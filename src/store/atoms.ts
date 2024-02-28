@@ -29,4 +29,4 @@ export const imageLoadableAtom = loadable(
     return image;
   }),
 );
-export const renderRelativeRectAtom = atom({ x: 0.25, y: 0.25, width: 0.5, height: 0.5 });
+export const renderRelativeRectAtom = atom({ x: 0, y: 0, width: 1, height: 1 });

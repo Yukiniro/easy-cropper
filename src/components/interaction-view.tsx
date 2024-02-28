@@ -130,7 +130,7 @@ export function InteractionView() {
 
   const auxiStyle = useMemo(() => {
     if (!canvasRef.current) {
-      return { auxiRect: { x: 0, y: 0, width: 0, height: 0 }, auxiDomRect: new DOMRect(0, 0, 0, 0) };
+      return { left: 0, top: 0, width: "100%", height: "100%" };
     }
     const canvasRect = canvasRef.current.getBoundingClientRect();
     const x = relativeRect.x * canvasRect.width;
@@ -156,7 +156,6 @@ export function InteractionView() {
   );
   const handleDragMove = useCallback(
     (e: MouseEvent, position: TrackPosition) => {
-      console.log(draggingPosition);
       if (draggingPosition === null) {
         return;
       }

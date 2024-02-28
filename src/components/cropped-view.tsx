@@ -58,7 +58,7 @@ export function CroppedView() {
           <canvas ref={canvasRef} />
           <div className="absolute translate-x-full -right-4 top-0">
             <DropdownMenu>
-              <DropdownMenuTrigger>
+              <DropdownMenuTrigger asChild>
                 <Button variant="outline">Download</Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
