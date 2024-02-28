@@ -6,6 +6,7 @@ import { clamp } from "lodash-es";
 import useDomRect from "@/hooks/useDomRect";
 import { Handle } from "./handle";
 import { TrackPosition } from "@/types";
+import { GridView } from "./grid-view";
 
 export function InteractionView() {
   const [status, setStatus] = useState<"new" | "move" | "none">("none");
@@ -253,6 +254,7 @@ export function InteractionView() {
             style={auxiStyle}
             onMouseDown={handleAuxiMouseDown}
           >
+            <GridView />
             {[0, 1, 2, 3, 4, 5, 6, 7].map((value) => {
               return (
                 <Handle
