@@ -11,3 +11,5 @@ export interface Point {
 }
 
 export interface RelativeRect extends Rect {}
+
+export type TrackPosition = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
